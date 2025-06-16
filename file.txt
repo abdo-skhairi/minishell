@@ -1,0 +1,9 @@
+1."'"ls"'"
+
+2.$'PWD'
+/Users/sabderra/Desktop/mini/parsing
+
+3.s_bash$ cat << """"ll
+
+echo $'USER' /+
+echo $"USER" /+
