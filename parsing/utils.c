@@ -76,3 +76,82 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 	d[i] = '\0';
 	return (d);
 }
+
+char *ft_strchr(const char *s, int c)
+{
+    while (*s)
+    {
+        if (*s == (char)c)
+            return ((char *)s);
+        s++;
+    }
+    if ((char)c == '\0')
+        return ((char *)s);
+    return (NULL);
+}
+
+char *my_strcat(char *dest, const char *src)
+{
+	size_t i = 0;
+	size_t j = 0;
+	while (dest[i])
+		i++;
+	while (src[j])
+	{
+		dest[i + j] = src[j];
+		j++;
+	}
+	dest[i + j] = '\0';
+	return dest;
+}
+
+char *ft_itoa(int n)
+{
+	int tmp = n;
+	int len = (n <= 0) ? 1 : 0;
+
+	while (tmp)
+	{
+		tmp /= 10;
+		len++;
+	}
+	char *str = malloc(len + 1);
+	if (!str)
+		return NULL;
+	str[len] = '\0';
+	if (n == 0)
+		str[0] = '0';
+	else if (n < 0)
+		str[0] = '-';
+	while (n)
+	{
+		str[--len] = '0' + ((n % 10) * (n < 0 ? -1 : 1));
+		n /= 10;
+	}
+	return str;
+}
+
+void *ft_realloc(void *ptr, size_t new_size)
+{
+	if (!ptr)
+		return malloc(new_size);
+	if (new_size == 0)
+	{
+		free(ptr);
+		return NULL;
+	}
+
+	char *old = (char *)ptr;
+	char *new_ptr = malloc(new_size);
+	if (!new_ptr)
+		return NULL;
+	size_t i = 0;
+	while (i + 1 < new_size && old[i])
+	{
+		new_ptr[i] = old[i];
+		i++;
+	}
+	new_ptr[i] = '\0';
+	free(ptr);
+	return new_ptr;
+}

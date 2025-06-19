@@ -1,32 +1,19 @@
 #include "main.h"
+#include <stdlib.h>
+#include <string.h>
 
-char *my_strcat(char *dest, const char *src)
+char *ft_get_env(t_env *env, const char *key)
 {
-	size_t i = 0;
-	size_t j = 0;
-	while (dest[i])
-		i++;
-	while (src[j])
+	while (env)
 	{
-		dest[i + j] = src[j];
-		j++;
+		if (!strcmp(env->key, key))
+			return env->value;
+		env = env->next;
 	}
-	dest[i + j] = '\0';
-	return dest;
+	return "";
 }
 
-char *get_env_value(const char *key)
-{
-	char *val;
-
-	val = getenv(key);
-	if (val)
-		return val;
-	else
-		return "";
-}
-
-char *expand_var(const char *src)
+char *expand_var(const char *src, int *exit_value, t_env *env)
 {
 	char *result = malloc(1);
 	if (!result)
@@ -41,52 +28,26 @@ char *expand_var(const char *src)
 			i++;
 			if (src[i] == '\0')
 			{
-				size_t len = ft_strlen(result);
-				char *tmp = realloc(result, len + 2);
+				size_t len = strlen(result);
+				char *tmp = ft_realloc(result, len + 2);
 				if (!tmp)
-				{
-					free(result);
-					return NULL;
-				}
+					return free(result), NULL;
 				result = tmp;
 				result[len] = '$';
 				result[len + 1] = '\0';
 				break;
 			}
-			else if (src[i] == '$')
-			{
-				char pid_str[21];
-				int pid = getpid();
-				int j = 19;
-				pid_str[20] = '\0';
-				if (pid == 0)
-					pid_str[j--] = '0';
-				while (pid > 0 && j >= 0)
-				{
-					pid_str[j--] = (pid % 10) + '0';
-					pid /= 10;
-				}
-				char *pid_val = &pid_str[j + 1];
-				char *tmp = realloc(result, ft_strlen(result) + ft_strlen(pid_val) + 1);
-				if (!tmp)
-				{
-					free(result);
-					return NULL;
-				}
-				result = tmp;
-				my_strcat(result, pid_val);
-				i++;
-			}
 			else if (src[i] == '?')
 			{
-				char *tmp = realloc(result, ft_strlen(result) + 2);
+				char *status = ft_itoa(*exit_value);
+				if (!status)
+					return free(result), NULL;
+				char *tmp = ft_realloc(result, strlen(result) + strlen(status) + 1);
 				if (!tmp)
-				{
-					free(result);
-					return NULL;
-				}
+					return free(status), free(result), NULL;
 				result = tmp;
-				my_strcat(result, "0");
+				strcat(result, status);
+				free(status);
 				i++;
 			}
 			else if (!((src[i] >= 'a' && src[i] <= 'z') ||
@@ -94,13 +55,10 @@ char *expand_var(const char *src)
 					   (src[i] >= '0' && src[i] <= '9') ||
 					   src[i] == '_'))
 			{
-				size_t len = ft_strlen(result);
-				char *tmp = realloc(result, len + 2);
+				size_t len = strlen(result);
+				char *tmp = ft_realloc(result, len + 2);
 				if (!tmp)
-				{
-					free(result);
-					return NULL;
-				}
+					return free(result), NULL;
 				result = tmp;
 				result[len] = '$';
 				result[len + 1] = '\0';
@@ -116,35 +74,25 @@ char *expand_var(const char *src)
 				int key_len = i - start;
 				char *key = malloc(key_len + 1);
 				if (!key)
-				{
-					free(result);
-					return NULL;
-				}
+					return free(result), NULL;
 				for (int j = 0; j < key_len; j++)
 					key[j] = src[start + j];
 				key[key_len] = '\0';
-				char *val = get_env_value(key);
-				char *tmp = realloc(result, ft_strlen(result) + ft_strlen(val) + 1);
+				char *val = ft_get_env(env, key);
+				char *tmp = ft_realloc(result, strlen(result) + strlen(val) + 1);
 				if (!tmp)
-				{
-					free(key);
-					free(result);
-					return NULL;
-				}
+					return free(key), free(result), NULL;
 				result = tmp;
-				my_strcat(result, val);
+				strcat(result, val);
 				free(key);
 			}
 		}
 		else
 		{
-			size_t len = ft_strlen(result);
-			char *tmp = realloc(result, len + 2);
+			size_t len = strlen(result);
+			char *tmp = ft_realloc(result, len + 2);
 			if (!tmp)
-			{
-				free(result);
-				return NULL;
-			}
+				return free(result), NULL;
 			result = tmp;
 			result[len] = src[i];
 			result[len + 1] = '\0';
@@ -174,11 +122,20 @@ char *handle_dollar_quote(const char *str)
 	return NULL;
 }
 
-void expand_tokens(t_token **tokens)
+void expand_tokens(t_token **tokens, int *exit_value, t_env *env)
 {
 	t_token *curr = *tokens;
+	t_token *prev = NULL;
+
 	while (curr)
 	{
+		if (prev && prev->type == HEREDOC)
+		{
+			prev = curr;
+			curr = curr->next;
+			continue;
+		}
+
 		if (!is_single_quoted(curr->value))
 		{
 			char *tmp = handle_dollar_quote(curr->value);
@@ -189,11 +146,12 @@ void expand_tokens(t_token **tokens)
 			}
 			else
 			{
-				char *expanded = expand_var(curr->value);
+				char *expanded = expand_var(curr->value, exit_value, env);
 				free(curr->value);
 				curr->value = expanded;
 			}
 		}
+		prev = curr;
 		curr = curr->next;
 	}
 }

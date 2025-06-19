@@ -7,3 +7,40 @@
 
 echo $'USER' /+
 echo $"USER" /+
+
+
+ls | echo "hello" >> ff
+
+
+Case	Typical exit status
+A command runs successfully	0
+Command not found (execve fail)	127
+Command found, but error occurs	1, 126, 2, etc.
+Builtin fails (e.g. cd bad path)	1 or custom
+Syntax error	2 or 258
+Exit builtin (exit 42)	42 (or user-given)
+
+cntrl c 130
+
+
+
+
+| Exit Code | Meaning                              | When to Use in Minishell                |
+| --------- | ------------------------------------ | --------------------------------------- |
+| `0`       | Success                              | After a successful builtin or execve    |
+| `1`       | General error                        | File exists, wrong permissions, etc.    |
+| `2`       | Incorrect usage / syntax error       | Wrong args to builtin, parsing failure  |
+| `126`     | Command found but not executable     | File exists but no `+x` permission      |
+| `127`     | Command not found                    | `execve()` fails with `ENOENT`          |
+| `130`     | Script terminated by Ctrl+C (SIGINT) | When signal 2 (optional bonus handling) |
+| `131`     | Segfault (SIGSEGV)                   | Crash in program (optional to show)     |
+
+
+
+s_bash$ export a="ls -la"
+COMMAND 1:
+  ARG[0]: export
+  ARG[1]: a=ls -la
+s_bash$ $a
+COMMAND 1:
+  ARG[0]: 

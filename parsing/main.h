@@ -50,6 +50,13 @@ typedef struct s_token
 	struct s_token	*next;
 } t_token;
 
+typedef struct s_env 
+{
+    char *key;
+    char *value;
+    struct s_env *next;
+} t_env;
+
 t_token *new_token(char *value, int is_space_befor);
 void	append_token(t_token **head, t_token *new_node);
 void	assign_token_types(t_token *tokens);
@@ -63,13 +70,19 @@ char	*ft_substr(char const *s, unsigned int start, size_t len);
 char	*my_strcpy(char *dest, const char *src);
 char	*ft_strdup(const char *s1);
 int		ft_strcmp(char *s1, char *s2);
+char	*ft_strchr(const char *s, int c);
+char	*ft_itoa(int n);
+void	*ft_realloc(void *ptr, size_t new_size);
 //--------------//
 
 
 //print:
 //--------------//
+#include <stdio.h>
+
 void	print_tokens(t_token *tokens);
 void	print_commands(t_command *cmds);
+void	print_env_list(t_env *env_list);
 //--------------//
 
 int			is_single_quoted(const char *str);
@@ -77,7 +90,7 @@ int			is_quoted(const char *str);
 
 char		*add_spaces_around_symbols(char *input);
 int			check_syntax_errors_raw(char *input);
-void		expand_tokens(t_token **tokens);
+void		expand_tokens(t_token **tokens, int *exit_value, t_env *env);
 void		join_tokens_with_no_space(t_token **tokens);
 t_command	*extract_all_commands(t_token *tokens);
 

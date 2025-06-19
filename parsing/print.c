@@ -64,3 +64,12 @@ void print_commands(t_command *cmds)
         i++;
     }
 }
+
+void	print_env_list(t_env *env_list)
+{
+    while (env_list)
+    {
+        printf("%s=%s\n", env_list->key, env_list->value);
+        env_list = env_list->next;
+    }
+}
