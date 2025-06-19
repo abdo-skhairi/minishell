@@ -20,3 +20,6 @@ clean:
 	rm -rf *.o
 
 re: fclean all
+
+me: fclean all 
+	./minishel

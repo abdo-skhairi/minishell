@@ -76,6 +76,11 @@ int check_invalid_redirections(char *s)
 
 int check_syntax_errors_raw(char *input)
 {
+    if (check_pipe_errors(input))
+    {
+        printf("syntax error near unexpected pipe\n");
+        return -1;
+    }
     if (check_unmatched_quotes(input))
     {
         printf("syntax error: unmatched quote\n");
@@ -84,11 +89,6 @@ int check_syntax_errors_raw(char *input)
     if (check_invalid_redirections(input))
     {
         printf("syntax error near redirection\n");
-        return -1;
-    }
-    if (check_pipe_errors(input))
-    {
-        printf("syntax error near unexpected pipe\n");
         return -1;
     }
     return 0;
